@@ -1,6 +1,14 @@
 package service;
 
+import org.apache.http.HttpHost;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.URIUtils;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.message.BasicNameValuePair;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -11,6 +19,7 @@ import org.jsoup.select.Elements;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -31,7 +40,7 @@ public class HttpClientServiceImplTest {
     @Test
     public void testService(){
         try {
-            //第一步 登陆
+            /*//第一步 登陆
             String url0="http://oa.gtadata.com/C6/JHSoft.Web.Login/AjaxForLogin.aspx";
             List<NameValuePair> nvps = new ArrayList<NameValuePair>();
             nvps.add(new BasicNameValuePair("loginCode", "d2VpZ2w="));
@@ -91,7 +100,7 @@ public class HttpClientServiceImplTest {
                     .append("&httCurrBtnText=").append(m4.group(4))
                     .append("&httAppID=").append(m4.group(6))
                     .append("&httDaType=").append(m4.group(7))
-                    .append("&httCurUserID=").append(m4.group(8)/*.append("10652")这里可以改变提交的人，比如我的员工号 10652*/)
+                    .append("&httCurUserID=").append(m4.group(8)*//*.append("10652")这里可以改变提交的人，比如我的员工号 10652*//*)
                     .append("&GroupCode=").append(m4.group(9))
                     .append("&Condition=").append(doc2.select("#app_hiddenFlowCondition").val())
                     .append("&_FlowInstanceID=").append(doc2.select("#hid_FlowInstanceTitle").val())
@@ -135,7 +144,78 @@ public class HttpClientServiceImplTest {
             //String html5 = hcs.url(url3.toString()).nvp(nvps5).post(); //这里提交的url第三步一样，只是提交的方法要用post方法。千万别随便提交，不然就搞大了。
 
             //第六步 退出系统
-            hcs.url("http://oa.gtadata.com/C6/jhsoft.web.workflat/UserDispose.aspx?userid="+m4.group(8)).get();
+            hcs.url("http://oa.gtadata.com/C6/jhsoft.web.workflat/UserDispose.aspx?userid="+m4.group(8)).get();*/
+
+            /*String url="http://211.66.64.35/default3.aspx";
+            List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+            nvps.add(new BasicNameValuePair("__VIEWSTATE", "dDwtNjg3Njk1NzQ3O3Q8O2w8aTwxPjs+O2w8dDw7bDxpPDg+O2k8MTM+O2k8MTU+Oz47bDx0PHA8O3A8bDxvbmNsaWNrOz47bDx3aW5kb3cuY2xvc2UoKVw7Oz4+Pjs7Pjt0PHA8bDxWaXNpYmxlOz47bDxvPGY+Oz4+Ozs+O3Q8O2w8aTwwPjs+O2w8dDw7bDxpPDE+Oz47bDx0PHA8bDxpbm5lcmh0bWw7PjtsPFw8dGFibGUgd2lkdGg9JzEwMCUnIGJvcmRlcj0nMCcgY2VsbHNwYWNpbmc9JzAnIGNlbGxwYWRkaW5nPScwJ1w+XDx0clw+XDx0ZCBhbGlnbj0nY2VudGVyJ1w+XDxhIHRhcmdldD1fYmxhbmsgIGhyZWY9J2p3Z2djay5hc3B4P2Zic2o9MjAxMC0wMy0wOCsxNSUzYTExJTNhMDImZ2didD0yMDA5JWM0JWVhMTIlZDQlYzIlYjclZGQlZDMlYTIlZDMlZWZCJWJjJWI2JWIzJWM5JWJjJWE4JWIxJWVkJkNvZGVGbGFnPSVjZCVhOCVkNiVhYSVjZSVjNCViYyVmZSdcPjIwMTAtMy04IDIwMDnlubQxMuaciOS7veiLseivrULnuqfmiJDnu6nooago6YCa55+l5paH5Lu2KVw8L2FcPlw8L3RkXD5cPC90clw+XDx0clw+XDx0ZCBhbGlnbj0nY2VudGVyJ1w+XDxhIHRhcmdldD1fYmxhbmsgIGhyZWY9J2p3Z2djay5hc3B4P2Zic2o9MjAxMC0wNS0xMCsxMSUzYTAxJTNhNTYmZ2didD0yMDA5LTIwMTAlZDElYTclYzQlZWElYjUlZGEyJWQxJWE3JWM2JWRhJWNjJWU1JWQzJWZkJWIyJWI5JWJmJWJjJWNkJWE4JWQ2JWFhJkNvZGVGbGFnPSVjZCVhOCVkNiVhYSVjZSVjNCViYyVmZSdcPjIwMTAtNS0xMCAyMDA5LTIwMTDlrablubTnrKwy5a2m5pyf5L2T6IKy6KGl6ICD6YCa55+lKOmAmuefpeaWh+S7tilcPC9hXD5cPC90ZFw+XDwvdHJcPlw8dHJcPlw8dGQgYWxpZ249J2NlbnRlcidcPlw8YSB0YXJnZXQ9X2JsYW5rICBocmVmPSdqd2dnY2suYXNweD9mYnNqPTIwMTAtMDgtMzArMTQlM2ExNiUzYTU1JmdnYnQ9JWJiJWM2JWM2JWQyJWQwJWEzJWM3JWY4MTAtMTElZDElYTclYzQlZWElYjUlZGElZDIlYmIlZDElYTclYzYlZGElYjIlYjklYmYlYmMlYmYlY2UlYjMlY2MlY2ElYjElYmMlZTQlYjAlYjIlYzUlYzUlYjElZWQmQ29kZUZsYWc9JWNkJWE4JWQ2JWFhJWNlJWM0JWJjJWZlJ1w+MjAxMC04LTMwIOm7hOWflOagoeWMujEwLTEx5a2m5bm056ys5LiA5a2m5pyf6KGl6ICD6K++56iL5pe26Ze05a6J5o6S6KGoKOmAmuefpeaWh+S7tilcPC9hXD5cPC90ZFw+XDwvdHJcPlw8dHJcPlw8dGQgYWxpZ249J2NlbnRlcidcPlw8YSB0YXJnZXQ9X2JsYW5rICBocmVmPSdqd2dnY2suYXNweD9mYnNqPTIwMTAtMDktMDIrMjMlM2EyNSUzYTU1JmdnYnQ9JWIyJWI5JWJmJWJjJWNhJWIxJWJjJWU0JWI1JWY3JWQ1JWZiJWJjJWIwJWJhJWJkJWJhJWEzJWExJWEyJWMyJWQ2JWJiJWZhJWQ3JWE4JWQyJWI1MDglYmMlYjYlYjElY2YlZDIlYjUlYzclYjAlYjIlYjklYmYlYmMlYjAlYjIlYzUlYzUmQ29kZUZsYWc9JWNkJWE4JWQ2JWFhJWNlJWM0JWJjJWZlJ1w+MjAxMC05LTIg6KGl6ICD5pe26Ze06LCD5pW05Y+K6Iiq5rW344CB6L2u5py65LiT5LiaMDjnuqfmr5XkuJrliY3ooaXogIPlronmjpIo6YCa55+l5paH5Lu2KVw8L2FcPlw8L3RkXD5cPC90clw+XDx0clw+XDx0ZCBhbGlnbj0nY2VudGVyJ1w+XDxhIHRhcmdldD1fYmxhbmsgIGhyZWY9J2p3Z2djay5hc3B4P2Zic2o9MjAxMC0xMi0wMisxNiUzYTM0JTNhNDYmZ2didD1JU085MDAwJWQ2JWNhJWMxJWJmJWI5JWRjJWMwJWVkJWNjJWU1JWNmJWI1JWM0JWRhJWM5JWYzJWQ0JWIxJWM1JWUwJWQxJWI1JWIwJWUwJWJmJWFhJWJmJWNlJWNkJWE4JWQ2JWFhJkNvZGVGbGFnPSVjZCVhOCVkNiVhYSVjZSVjNCViYyVmZSdcPjIwMTAtMTItMiBJU085MDAw6LSo6YeP566h55CG5L2T57O75YaF5a6h5ZGY5Z+56K6t54+t5byA6K++6YCa55+lKOmAmuefpeaWh+S7tilcPC9hXD5cPC90ZFw+XDwvdHJcPlw8dHJcPlw8dGQgYWxpZ249J2NlbnRlcidcPlw8YSB0YXJnZXQ9X2JsYW5rICBocmVmPSdqd2dnY2suYXNweD9mYnNqPTIwMTAtMTItMzArMjMlM2E1MSUzYTM2JmdnYnQ9JWI1JWRhMTklZDYlZGMlYmYlYmMlY2ElZDQlYzglZDUlYjMlY2MlYjElZWQmQ29kZUZsYWc9JWNkJWE4JWQ2JWFhJWNlJWM0JWJjJWZlJ1w+MjAxMC0xMi0zMCDnrKwxOeWRqOiAg+ivleaXpeeoi+ihqCjpgJrnn6Xmlofku7YpXDwvYVw+XDwvdGRcPlw8L3RyXD5cPHRyXD5cPHRkIGFsaWduPSdjZW50ZXInXD5cPGEgdGFyZ2V0PV9ibGFuayAgaHJlZj0nandnZ2NrLmFzcHg/ZmJzaj0yMDExLTAxLTEwKzE1JTNhNDQlM2E0NiZnZ2J0PSViOSVkOCVkMyVkYTIwMTAtMjAxMSVkMSVhNyVjNCVlYSViNSVkYTElZDElYTclYzYlZGElYjMlYzklYmMlYTglYjIlZTklZDElYWYlYTElYTIlYjIlYjklYmYlYmMlYjAlYjIlYzUlYzUlYmMlYjAlY2YlYzIlZDElYTclYzYlZGElZDYlZDglZDAlZGUlYjAlYjIlYzUlYzUlYjUlYzQlY2QlYTglZDYlYWEmQ29kZUZsYWc9JWNkJWE4JWQ2JWFhJWNlJWM0JWJjJWZlJ1w+MjAxMS0xLTEwIOWFs+S6jjIwMTAtMjAxMeWtpuW5tOesrDHlrabmnJ/miJDnu6nmn6Xor6LjgIHooaXogIPlronmjpLlj4rkuIvlrabmnJ/ph43kv67lronmjpLnmoTpgJrnn6Uo6YCa55+l5paH5Lu2KVw8L2FcPlw8L3RkXD5cPC90clw+XDx0clw+XDx0ZCBhbGlnbj0nY2VudGVyJ1w+XDxhIHRhcmdldD1fYmxhbmsgIGhyZWY9J2p3Z2djay5hc3B4P2Zic2o9MjAxMi0wNS0xOCsxNyUzYTEyJTNhMzYmZ2didD0lYjklZDglZDMlZGElYjAlZWMlYzAlZWRDQ1QlZDYlYTQlY2ElZTklYjUlYzQlY2QlYTglZDYlYWEmQ29kZUZsYWc9JWNkJWE4JWQ2JWFhJWNlJWM0JWJjJWZlJ1w+MjAxMi01LTE4IOWFs+S6juWKnueQhkNDVOivgeS5pueahOmAmuefpSjpgJrnn6Xmlofku7YpXDwvYVw+XDwvdGRcPlw8L3RyXD5cPHRyXD5cPHRkIGFsaWduPSdjZW50ZXInXD5cPGEgdGFyZ2V0PV9ibGFuayAgaHJlZj0nandnZ2NrLmFzcHg/ZmJzaj0yMDEzLTA3LTEyKzA4JTNhMzElM2EyNyZnZ2J0PTIwMTItMjAxMyVkMSVhNyVjNCVlYSViNSVkYSViNiVmZSVkMSVhNyVjNiVkYSViZiVjZSViMyVjYyViMiViOSViZiViYyViMCViMiVjNSVjNSViNSVjNCVjZCVhOCVkNiVhYSZDb2RlRmxhZz0lY2QlYTglZDYlYWElY2UlYzQlYmMlZmUnXD4yMDEzLTctMTIgMjAxMi0yMDEz5a2m5bm056ys5LqM5a2m5pyf6K++56iL6KGl6ICD5a6J5o6S55qE6YCa55+lKOmAmuefpeaWh+S7tilcPC9hXD5cPC90ZFw+XDwvdHJcPlw8dHJcPlw8dGQgYWxpZ249J2NlbnRlcidcPlw8YSB0YXJnZXQ9X2JsYW5rICBocmVmPSdqd2dnY2suYXNweD9mYnNqPTIwMTMtMDktMDkrMTElM2E0NyUzYTEwJmdnYnQ9MjAxMyVjNCVlYSVjZiVjMiViMCVlYiVjNCVlYSVkMyVhMiVkMyVlZiVjYiVjNCVhMSVhMiVjMSVmOSViYyViNiViYyViMCVkMyVhMiVkMyVlZiVkMyVhNiVkMyVjMyVjNCVkYyVjMSVhNkIlYmMlYjYlYmYlYmMlY2ElZDQlYjElYTglYzMlZmIlY2QlYTglZDYlYWEmQ29kZUZsYWc9JWNkJWE4JWQ2JWFhJWNlJWM0JWJjJWZlJ1w+MjAxMy05LTkgMjAxM+W5tOS4i+WNiuW5tOiLseivreWbm+OAgeWFree6p+WPiuiLseivreW6lOeUqOiDveWKm0LnuqfogIPor5XmiqXlkI3pgJrnn6Uo6YCa55+l5paH5Lu2KVw8L2FcPlw8L3RkXD5cPC90clw+XDwvdGFibGVcPlw8c2NyaXB0IHR5cGU9J3RleHQvamF2YXNjcmlwdCdcPnZhciBvTWFycXVlZSA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdtcScpXDt2YXIgaUxpbmVIZWlnaHQgPSAxNlw7dmFyIGlMaW5lQ291bnQgPSAxMFw7dmFyIGlTY3JvbGxBbW91bnQgPSAxXDsgZnVuY3Rpb24gcnVuKCl7b01hcnF1ZWUuc2Nyb2xsVG9wICs9IGlTY3JvbGxBbW91bnRcO2lmICggb01hcnF1ZWUuc2Nyb2xsVG9wID09IGlMaW5lQ291bnQgKiBpTGluZUhlaWdodCApe29NYXJxdWVlLnNjcm9sbFRvcCA9IDBcO31pZiAoIG9NYXJxdWVlLnNjcm9sbFRvcCAlIGlMaW5lSGVpZ2h0ID09IDAgKSB7d2luZG93LnNldFRpbWVvdXQoICdydW4oKScsIDIwMDAgKVw7fSBlbHNlIHt3aW5kb3cuc2V0VGltZW91dCggJ3J1bigpJywgNTAgKVw7fX1vTWFycXVlZS5pbm5lckhUTUwgKz0gb01hcnF1ZWUuaW5uZXJIVE1MXDt3aW5kb3cuc2V0VGltZW91dCggJ3J1bigpJywgMjAwMCApXDtcPC9zY3JpcHRcPjs+Pjs7Pjs+Pjs+Pjs+Pjs+PjtsPGltZ0RMO2ltZ1RDO2ltZ1FNTTs+PgQ3BaEIyYe7a70jT6lKPaU8jBdA"));
+            nvps.add(new BasicNameValuePair("__VIEWSTATEGENERATOR", "94A5C162"));
+            nvps.add(new BasicNameValuePair("tbYHM", "201315090214"));
+            nvps.add(new BasicNameValuePair("tbPSW", "chenguoshun"));
+            nvps.add(new BasicNameValuePair("ddlSF", "学生"));
+            nvps.add(new BasicNameValuePair("imgDL.x", "23"));
+            nvps.add(new BasicNameValuePair("imgDL.y", "12"));
+            System.out.println(hcs.url(url).nvp(nvps).post());
+
+            String url1 = "http://211.66.64.35/xstop.aspx";
+            System.out.println(hcs.url(url1).get());*/
+
+            /*LaxRedirectStrategy redirectStrategy = new LaxRedirectStrategy();
+            CloseableHttpClient httpclient = HttpClients.custom()
+                    .setRedirectStrategy(redirectStrategy)
+                    .build();*/
+
+            /*CloseableHttpClient httpclient = HttpClients.createDefault();
+            HttpClientContext context = HttpClientContext.create();
+            HttpGet httpget = new HttpGet("http://localhost:9000/");
+            CloseableHttpResponse response = httpclient.execute(httpget, context);
+            try {
+                HttpHost target = context.getTargetHost();
+                List<URI> redirectLocations = context.getRedirectLocations();
+                URI location = URIUtils.resolve(httpget.getURI(), target, redirectLocations);
+                System.out.println("Final HTTP location: " + location.toASCIIString());
+                // Expected to be an absolute URI
+            } finally {
+                response.close();
+            }*/
+
+            /*String googleUrl="https://www.google.com.hk/webhp?hl=zh-CN";
+            String html0 =hcs.url(googleUrl).get();
+            System.out.println(html0);*/
+
+            /*String str ="<html>" +
+                    "<head>" +
+                    "<title>新浪通行证</title>" +
+                    "<meta http-equiv=\"refresh\" content=\"0; url=&#39;http://weibo.com/sso/login.php?ssosavestate=1390443820&url=http%3A%2F%2Fs.weibo.com%2Fwb%2F%2525E9%2525A3%25259F%2525E5%252593%252581%252B%2525E5%2525AE%252589%2525E5%252585%2525A8%26scope%3Dori%26timescope%3Dcustom%3A2013-12-23%3A2013-12-24%26page%3D10%3Fsudaref%3Dwww.weibo.com&ticket=ST-MzkxNjc2NDA5OQ==-1387851820-yf-1514ECFD2730A93448C0595E9BFFEC7E&retcode=0&#39;\"/>" +
+                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=GBK\" />" +
+                    "</head>" +
+                    "<body bgcolor=\"#ffffff\" text=\"#000000\" link=\"#0000cc\" vlink=\"#551a8b\" alink=\"#ff0000\"><script>" +
+                    "    function pluginLoaded(wbplugin) {" +
+                    "        try {" +
+                    "            wbplugin && wbplugin.webSigned();" +
+                    "        }catch(e){}" +
+                    "    }" +
+                    "</script>" +
+                    "<object type=\"application/x-signassist\" width=\"0\" height=\"0\">" +
+                    "    <param name=\"onload\" value=\"pluginLoaded(this)\" />" +
+                    "</object><script type=\"text/javascript\" language=\"javascript\">" +
+                    "location.replace(\"http://weibo.com/sso/login.php?ssosavestate=1390443820&url=http%3A%2F%2Fs.weibo.com%2Fwb%2F%2525E9%2525A3%25259F%2525E5%252593%252581%252B%2525E5%2525AE%252589%2525E5%252585%2525A8%26scope%3Dori%26timescope%3Dcustom%3A2013-12-23%3A2013-12-24%26page%3D10%3Fsudaref%3Dwww.weibo.com&ticket=ST-MzkxNjc2NDA5OQ==-1387851820-yf-1514ECFD2730A93448C0595E9BFFEC7E&retcode=0\");" +
+                    "</script>" +
+                    "</body>" +
+                    "</html>";*/
+
+            String str = "我是中国人体育课：(ART 朱晓峰 55 5 22 1 1 6 5 3 8 2周 [A203])和啥哈哈哈";
+
+            Pattern p = Pattern.compile("^.*\\(\\w+\\s\\W+\\s(.*)周\\s\\[\\w+\\]\\).+$");
+            Matcher m = p.matcher(str);
+            if(m.find()){
+                System.out.println(m.group(1));;
+            }
+            String[] s = m.group(1).split("\\s");
+            System.out.println(s.length);
+
+
+
         } catch (Exception e) {
             e.printStackTrace();
         } finally {//保证释放链接
